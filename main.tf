@@ -87,7 +87,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
 
 # Lambda Function
 resource "aws_lambda_function" "metrics_collector" {
-  function_name = "${var.name_prefix}-ebs-metrics"
+  function_name = "${var.name_prefix}-lambda"
   role          = aws_iam_role.lambda_role.arn
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
