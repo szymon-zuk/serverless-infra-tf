@@ -1,4 +1,6 @@
+import json
 import os
+import logging
 
 import boto3
 from botocore.config import Config
@@ -6,6 +8,8 @@ from botocore.config import Config
 SCAN_MODE = os.getenv("SCAN_MODE", "current")
 CLOUDWATCH_NAMESPACE = os.getenv("CLOUDWATCH_NAMESPACE", "Custom/EBSMetrics")
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 session = boto3.Session()
 
 
@@ -18,6 +22,7 @@ def get_region() -> str:
 
 
 def collect_for_region(region: str) -> dict:
+    """Collect EBS metrics for the specified region."""
     ec2 = session.client(
         "ec2",
         region_name=region,
@@ -57,6 +62,7 @@ def collect_for_region(region: str) -> dict:
 
 
 def publish_metrics_to_cloudwatch(metrics: dict, region: str):
+    """Publish collected metrics to CloudWatch."""
     cw = session.client("cloudwatch", region_name=region)
     total_unattached = metrics.get("UnattachedVolumesCount", 0)
     total_unattached_size = metrics.get("UnattachedVolumesTotalSizeGB", 0)
@@ -88,10 +94,18 @@ def publish_metrics_to_cloudwatch(metrics: dict, region: str):
 
 
 def lambda_handler(event, context):
+    """Lambda function entry point."""
     if os.getenv("FREE_TIER_LOCK", "false").lower() != "true":
         raise RuntimeError("FREE_TIER_LOCK must be true")
     region = get_region()
     results = collect_for_region(region)
+
+    logger.info(json.dumps({
+        "kind": "ebs-metrics",
+        "namespace": CLOUDWATCH_NAMESPACE,
+        "region": region,
+        "metrics_published": results
+    }))
     publish_metrics_to_cloudwatch(results, region)
 
     return {
