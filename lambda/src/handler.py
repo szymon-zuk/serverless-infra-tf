@@ -1,6 +1,6 @@
 import json
-import os
 import logging
+import os
 
 import boto3
 from botocore.config import Config
@@ -100,12 +100,16 @@ def lambda_handler(event, context):
     region = get_region()
     results = collect_for_region(region)
 
-    logger.info(json.dumps({
-        "kind": "ebs-metrics",
-        "namespace": CLOUDWATCH_NAMESPACE,
-        "region": region,
-        "metrics_published": results
-    }))
+    logger.info(
+        json.dumps(
+            {
+                "kind": "ebs-metrics",
+                "namespace": CLOUDWATCH_NAMESPACE,
+                "region": region,
+                "metrics_published": results,
+            }
+        )
+    )
     publish_metrics_to_cloudwatch(results, region)
 
     return {
