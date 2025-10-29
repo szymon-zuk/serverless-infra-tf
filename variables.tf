@@ -1,7 +1,23 @@
+variable "enable_free_tier_mode" {
+  type        = bool
+  default     = true
+  description = "Free-tier hard lock. Must remain true."
+  validation {
+    condition     = var.enable_free_tier_mode == true
+    error_message = "Free-tier lock must remain enabled."
+  }
+}
+
 variable "region" {
   description = "The AWS region to deploy resources in."
   type        = string
-  default     = "us-east-1"
+  default     = "eu-central-1"
+}
+
+variable "aws_profile" {
+  description = "AWS CLI profile to use for authentication."
+  type        = string
+  default     = "private"
 }
 
 variable "name_prefix" {
